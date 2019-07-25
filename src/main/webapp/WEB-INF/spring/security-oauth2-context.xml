@@ -19,10 +19,54 @@
 
   <beans:bean id="passwordEncoder" class="org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder" />
 
-  <!-- /oauth/token handler -->
+  <!-- ClientDetailsService configuration -->
+  <oauth2:client-details-service id="inMemoryClientDetailsService">
+    <oauth2:client client-id="SampleClientId"
+      secret="$2a$10$NG71NYxTNObfXlPShFaJR.FYPZI4ozaOs8ERROsINmUIDiUm2kOZS" authorized-grant-types="authorization_code"
+      scope="user_info" autoapprove="true"
+      redirect-uri="http://localhost:8080/login,http://localhost:8082/login,http://localhost:8083/login" />
+  </oauth2:client-details-service>
+
+  <beans:bean id="jdbcClientDetailsService"
+    class="org.springframework.security.oauth2.provider.client.JdbcClientDetailsService">
+    <beans:constructor-arg ref="dataSource" />
+  </beans:bean>
+
+  <beans:bean id="inMemoryClientDetailsUserDetailsService"
+    class="org.springframework.security.oauth2.provider.client.ClientDetailsUserDetailsService">
+    <beans:constructor-arg ref="inMemoryClientDetailsService" />
+  </beans:bean>
+
+  <beans:bean id="jdbcClientDetailsUserDetailsService"
+    class="org.springframework.security.oauth2.provider.client.ClientDetailsUserDetailsService">
+    <beans:constructor-arg ref="jdbcClientDetailsService" />
+  </beans:bean>
+
+  <authentication-manager id="oauth2AuthenticationManager">
+    <authentication-provider user-service-ref="jdbcClientDetailsUserDetailsService" />
+  </authentication-manager>
+
+  <!-- client credentials authentication -->
+  <beans:bean id="clientCredentialsTokenEndpointFilter"
+    class="org.springframework.security.oauth2.provider.client.ClientCredentialsTokenEndpointFilter">
+    <beans:property name="authenticationManager" ref="oauth2AuthenticationManager" />
+  </beans:bean>
+
+  <beans:bean id="oauth2AuthenticationEntryPoint"
+    class="org.springframework.security.oauth2.provider.error.OAuth2AuthenticationEntryPoint" />
+
+  <beans:bean id="oauth2AccessDeniedHandler"
+    class="org.springframework.security.oauth2.provider.error.OAuth2AccessDeniedHandler" />
+
+  <!-- Endpoint /oauth/token configuration -->
+  <!-- /oauth/* -->
   <http pattern="/oauth/token" create-session="stateless" authentication-manager-ref="oauth2AuthenticationManager"
     entry-point-ref="oauth2AuthenticationEntryPoint" use-expressions="false">
     <intercept-url pattern="/oauth/token" access="IS_AUTHENTICATED_FULLY" />
+    <!--
+      <intercept-url pattern="/oauth/check_key" access="" /> checkTokenAccess()
+      <intercept-url pattern="/oauth/token_key" access="" /> tokenKeyAccess()
+    -->
     <anonymous enabled="false" />
     <http-basic entry-point-ref="oauth2AuthenticationEntryPoint" />
     <custom-filter ref="clientCredentialsTokenEndpointFilter" before="BASIC_AUTH_FILTER" />
@@ -30,11 +74,95 @@
     <csrf disabled="true" />
   </http>
 
-  <!-- client credentials authentication -->
-  <beans:bean id="clientCredentialsTokenEndpointFilter"
-    class="org.springframework.security.oauth2.provider.client.ClientCredentialsTokenEndpointFilter">
-    <beans:property name="authenticationManager" ref="oauth2AuthenticationManager" />
+  <!--Config token services -->
+  <beans:bean id="inMemoryTokenStore"
+    class="org.springframework.security.oauth2.provider.token.store.InMemoryTokenStore" />
+
+  <beans:bean id="jdbcTokenStore"
+    class="org.springframework.security.oauth2.provider.token.store.JdbcTokenStore">
+    <beans:constructor-arg ref="dataSource" />
   </beans:bean>
+
+  <beans:bean id="tokenServices"
+    class="org.springframework.security.oauth2.provider.token.DefaultTokenServices">
+    <beans:property name="tokenStore" ref="jdbcTokenStore" />
+    <beans:property name="clientDetailsService" ref="jdbcClientDetailsService" />
+    <beans:property name="supportRefreshToken" value="true" />
+  </beans:bean>
+
+  <beans:bean class="org.springframework.security.oauth2.provider.request.DefaultOAuth2RequestFactory"
+    id="oAuth2RequestFactory">
+    <beans:constructor-arg name="clientDetailsService" ref="jdbcClientDetailsService" />
+  </beans:bean>
+
+  <!-- User approval handler configuration -->
+  <!--
+    <beans:bean id="oauthUserApprovalHandler"
+    class="org.springframework.security.oauth2.provider.approval.DefaultUserApprovalHandler" />
+  -->
+  <beans:bean id="tokenApprovalStore"
+    class="org.springframework.security.oauth2.provider.approval.TokenApprovalStore" />
+  <beans:bean id="oauthUserApprovalHandler"
+    class="org.springframework.security.oauth2.provider.approval.ApprovalStoreUserApprovalHandler">
+    <beans:property name="approvalStore" ref="tokenApprovalStore" />
+    <beans:property name="requestFactory" ref="oAuth2RequestFactory" />
+    <beans:property name="clientDetailsService" ref="jdbcClientDetailsService" />
+  </beans:bean>
+
+  <beans:bean id="jdbcAuthorizationCodeServices"
+    class="org.springframework.security.oauth2.provider.code.JdbcAuthorizationCodeServices">
+    <beans:constructor-arg ref="dataSource" />
+  </beans:bean>
+
+  <!-- Authorization server -->
+  <!-- authorization-endpoint-url: Custom authorization endpoint, default /oauth/authorize -->
+  <!-- token-endpoint-url: Custom token endpoint, default /oauth/token -->
+  <!-- user-approval-page: Custom user approval page -->
+  <oauth2:authorization-server client-details-service-ref="jdbcClientDetailsService"
+    token-services-ref="tokenServices" user-approval-handler-ref="oauthUserApprovalHandler" error-page="oauth_error">
+    <oauth2:authorization-code authorization-code-services-ref="jdbcAuthorizationCodeServices" />
+    <oauth2:implicit />
+    <oauth2:refresh-token />
+    <oauth2:client-credentials />
+    <oauth2:password />
+  </oauth2:authorization-server>
+
+  <authentication-manager id="userAuthenticationManager">
+    <authentication-provider>
+      <user-service>
+        <user name="admin" password="$2a$10$lHsV.TqzNwBXsbyYOjMaXOEj7jUYwaH0kTDzTI1p.u2Fd3.lQRhPi"
+          authorities="ROLE_USER" />
+      </user-service>
+      <password-encoder ref="passwordEncoder" />
+    </authentication-provider>
+  </authentication-manager>
+
+  <http disable-url-rewriting="true" use-expressions="false" authentication-manager-ref="userAuthenticationManager">
+    <intercept-url pattern="/oauth/**" access="ROLE_USER,ROLE_UNITY,ROLE_MOBILE" />
+    <intercept-url pattern="/**" access="IS_AUTHENTICATED_ANONYMOUSLY" />
+    <!-- form login -->
+    <!-- login-page: custom login page -->
+    <!-- default-target-url: custom page to redirect to after login -->
+    <form-login authentication-failure-url="/login.jsp?authentication_error=1" login-processing-url="/login" />
+    <logout logout-success-url="/index.jsp" logout-url="/logout.do" />
+    <access-denied-handler error-page="/login.jsp?authorization_error=2" />
+    <anonymous />
+    <csrf disabled="true" />
+  </http>
+
+  <!-- 
+  <oauth2:resource-server id="testResourceServer" resource-id="testResource"
+    token-services-ref="tokenServices" />
+
+  <http pattern="/user/**" use-expressions="false" create-session="never" entry-point-ref="oauth2AuthenticationEntryPoint"
+    access-decision-manager-ref="oauth2AccessDecisionManager">
+    <anonymous enabled="false" />
+    <intercept-url pattern="/user/**" access="ROLE_USER" />
+
+    <custom-filter ref="testResourceServer" before="PRE_AUTH_FILTER" />
+    <access-denied-handler ref="oauth2AccessDeniedHandler" />
+  </http>
+   -->
 
   <!-- Resource url handler -->
   <!--
@@ -56,126 +184,20 @@
     token-services-ref="tokenServices" />
   -->
 
-  <!-- ClientDetailsService configuration -->
-  <oauth2:client-details-service id="clientDetailsService">
-    <oauth2:client client-id="SampleClientId" secret="secret" authorized-grant-types="authorization_code"
-      scope="user_info" autoapprove="true"
-      redirect-uri="http://localhost:8080/login,http://localhost:8082/login,http://localhost:8083/login" />
-  </oauth2:client-details-service>
-
-  <!-- Custom JDBC client details -->
-  <!--
-    <beans:bean id="clientDetailsService" class="CustomJdbcClientDetailsService">
-    <beans:constructor-arg index="0" ref="dataSource" />
-    </beans:bean>
-  -->
-
-  <!--Config token services -->
-  <beans:bean id="tokenStore"
-    class="org.springframework.security.oauth2.provider.token.store.InMemoryTokenStore" />
-  <!-- Custom JDBC token store -->
-  <!--
-    <beans:bean id="tokenStore" class="CustomJdbcTokenStore">
-    <beans:constructor-arg index="0" ref="dataSource" />
-    </beans:bean>
-  -->
-
-  <beans:bean id="tokenServices"
-    class="org.springframework.security.oauth2.provider.token.DefaultTokenServices">
-    <beans:property name="tokenStore" ref="tokenStore" />
-    <beans:property name="clientDetailsService" ref="clientDetailsService" />
-    <beans:property name="supportRefreshToken" value="true" />
-  </beans:bean>
-
-  <beans:bean class="org.springframework.security.oauth2.provider.request.DefaultOAuth2RequestFactory"
-    id="oAuth2RequestFactory">
-    <beans:constructor-arg name="clientDetailsService" ref="clientDetailsService" />
-  </beans:bean>
-
-  <!-- Config user approval handler -->
-  <beans:bean id="oauthUserApprovalHandler"
-    class="org.springframework.security.oauth2.provider.approval.DefaultUserApprovalHandler" />
-
-  <!-- Config JDBC authorization code service -->
-  <!--
-    <beans:bean id="jdbcAuthorizationCodeServices"
-    class="org.springframework.security.oauth2.provider.code.JdbcAuthorizationCodeServices">
-    <beans:constructor-arg index="0" ref="dataSource"/>
-    </beans:bean>
-  -->
-
-  <!-- Authorization server -->
-  <!-- authorization-endpoint-url: Custom authorization endpoint, default /oauth/authorization -->
-  <!-- token-endpoint-url: Custom token endpoint, default /oauth/token -->
-  <!-- user-approval-page: Custom user approval page -->
-  <oauth2:authorization-server client-details-service-ref="clientDetailsService"
-    token-services-ref="tokenServices" user-approval-handler-ref="oauthUserApprovalHandler" error-page="oauth_error">
-    <!--
-      <oauth2:authorization-code authorization-code-services-ref="jdbcAuthorizationCodeServices" />
-    -->
-    <oauth2:authorization-code />
-    <!--
-      <oauth2:implicit />
-      <oauth2:refresh-token />
-      <oauth2:client-credentials />
-      <oauth2:password />
-    -->
-  </oauth2:authorization-server>
-
-  <beans:bean id="oauth2AuthenticationEntryPoint"
-    class="org.springframework.security.oauth2.provider.error.OAuth2AuthenticationEntryPoint" />
-
-  <beans:bean id="oauth2ClientDetailsUserService"
-    class="org.springframework.security.oauth2.provider.client.ClientDetailsUserDetailsService">
-    <beans:constructor-arg ref="clientDetailsService" />
-  </beans:bean>
-
-  <authentication-manager id="oauth2AuthenticationManager">
-    <authentication-provider user-service-ref="oauth2ClientDetailsUserService">
-      <password-encoder ref="passwordEncoder" />
-    </authentication-provider>
-  </authentication-manager>
-
   <!-- Spring Security AccessDecisionManager -->
-  <!--
-    <beans:bean id="oauth2AccessDecisionManager"
+  <beans:bean id="oauth2AccessDecisionManager"
     class="org.springframework.security.access.vote.UnanimousBased">
     <beans:constructor-arg>
-    <beans:list>
-    <beans:bean class="org.springframework.security.oauth2.provider.vote.ScopeVoter" />
-    <beans:bean class="org.springframework.security.access.vote.RoleVoter" />
-    <beans:bean class="org.springframework.security.access.vote.AuthenticatedVoter" />
-    </beans:list>
+      <beans:list>
+        <!--
+          <beans:bean class="org.springframework.security.oauth2.provider.vote.ScopeVoter" />
+          <beans:bean class="org.springframework.security.access.vote.AuthenticatedVoter" />
+        -->
+          <beans:bean class="org.springframework.security.access.vote.RoleVoter" />
+        <beans:bean class="org.springframework.security.web.access.expression.WebExpressionVoter" />
+      </beans:list>
     </beans:constructor-arg>
-    </beans:bean>
-  -->
-
-  <beans:bean id="oauth2AccessDeniedHandler"
-    class="org.springframework.security.oauth2.provider.error.OAuth2AccessDeniedHandler" />
-
-
-  <http disable-url-rewriting="true" use-expressions="false" authentication-manager-ref="userAuthenticationManager">
-    <intercept-url pattern="/oauth/**" access="ROLE_USER,ROLE_UNITY,ROLE_MOBILE" />
-    <intercept-url pattern="/**" access="IS_AUTHENTICATED_ANONYMOUSLY" />
-    <!-- form login -->
-    <!-- login-page: custom login page -->
-    <!-- default-target-url: custom page to redirect to after login -->
-    <form-login authentication-failure-url="/login.jsp?authentication_error=1" login-processing-url="/login" />
-    <logout logout-success-url="/index.jsp" logout-url="/logout.do" />
-    <access-denied-handler error-page="/login.jsp?authorization_error=2" />
-    <anonymous />
-    <csrf disabled="true" />
-  </http>
-
-  <authentication-manager id="userAuthenticationManager">
-    <authentication-provider>
-      <user-service id="userService">
-        <user name="admin" password="$2a$10$lHsV.TqzNwBXsbyYOjMaXOEj7jUYwaH0kTDzTI1p.u2Fd3.lQRhPi"
-          authorities="ROLE_USER" />
-      </user-service>
-      <password-encoder ref="passwordEncoder" />
-    </authentication-provider>
-  </authentication-manager>
+  </beans:bean>
 
   <!--
     <authentication-manager alias="authenticationManager">

@@ -12,9 +12,9 @@ public class UserController extends BaseController {
 	private static final Logger LOGGER = LoggerFactory.getLogger(UserController.class);
 
 	@GetMapping(value = "user/me")
-	public Principal user(Principal principal) {
-		LOGGER.info("Principal: {}.", principal);
-		return principal;
+	public String user() {
+		String principal = (String)org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+		return String.format("{\"test\":\"%s\"}", principal);
 	}
 
 }

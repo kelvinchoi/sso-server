@@ -49,6 +49,7 @@
   </bean>
 
   <!-- 使用FastJson替代Jackson -->
+  <!-- 
   <mvc:annotation-driven>
     <mvc:message-converters>
       <bean id="fastJsonHttpMessageConverter"
@@ -61,4 +62,5 @@
       </bean>
     </mvc:message-converters>
   </mvc:annotation-driven>
+   -->
 </beans>
