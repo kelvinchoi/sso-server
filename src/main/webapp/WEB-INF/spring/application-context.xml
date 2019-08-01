@@ -9,7 +9,7 @@
 
   <!-- Application Context: defines shared resources visible to all other web components -->
   <context:property-placeholder
-    location="classpath:jdbc.properties" />
+    location="classpath:jdbc.properties,classpath:param.properties" />
 
   <!-- Component scanner, exclude controller -->
   <context:component-scan base-package="com.gmcc.ssoserver">

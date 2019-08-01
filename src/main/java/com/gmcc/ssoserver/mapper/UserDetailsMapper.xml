@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.gmcc.ssoserver.dao.UserDetailsDao">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.gmcc.ssoserver.entity.UserDetailsEntity">
+        <id column="phone" property="phone" />
+        <result column="user_name" property="userName" />
+        <result column="check_code" property="checkCode" />
+        <result column="authority" property="authority" />
+        <result column="last_sms_code_time" property="lastSmsCodeTime" />
+        <result column="login_time" property="loginTime" />
+    </resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        phone, user_name, check_code, authority, last_sms_code_time, login_time
+    </sql>
+
+</mapper>

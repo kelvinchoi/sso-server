@@ -9,6 +9,7 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import com.gmcc.ssoserver.common.BaseTest;
 
 public class BCryptPasswordEncoderTest extends BaseTest {
+
 	@Autowired
 	private BCryptPasswordEncoder passwordEncoder;
 

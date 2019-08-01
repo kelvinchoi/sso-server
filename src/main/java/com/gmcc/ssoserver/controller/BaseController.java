@@ -25,7 +25,7 @@ public class BaseController {
 	@ModelAttribute
 	public void handle(Model model) {
 //  	String basePath = request.getScheme() + "://" + request.getServerName() + ":" + request.getServerPort() + path + "/";
-		model.addAttribute("modelName", "系统单点登录");
+		model.addAttribute("title", "系统单点登录");
 		model.addAttribute("contextPath", request.getContextPath());
 	}
 }
