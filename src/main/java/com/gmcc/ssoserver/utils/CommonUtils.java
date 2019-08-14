@@ -1,7 +1,5 @@
 package com.gmcc.ssoserver.utils;
 
-import java.util.Random;
-
 import org.apache.http.HttpEntity;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
@@ -13,10 +11,6 @@ import org.slf4j.LoggerFactory;
 
 public class CommonUtils {
 	private static final Logger LOGGER = LoggerFactory.getLogger(CommonUtils.class);
-
-	public static Integer generateSmsCode() {
-		return new Random().nextInt(899999) + 100000;
-	}
 
 	/**
 	 * Call the specific uri with GET method, please make sure to consume the HttpEntity by calling

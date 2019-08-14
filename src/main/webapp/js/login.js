@@ -1,59 +1,93 @@
-$('.code-btn').on('click', function() {
-  if ($(this).hasClass('code-btn-gray')) {
+function checkMobilePhoneNumber(mpn) {
+  var regex = /^1\d{10}$/;
+  return mpn && regex.test(mpn);
+}
+
+function checkSmsCode(smsCode) {
+  var regex = /\d{6}/;
+  return smsCode && regex.test(smsCode);
+}
+
+function checkSmsCodeBtnStatus(mpn) {
+  var $smsCodeBtn = $('.login-smscode-btn');
+  // console.log($smsCodeBtn.prop("disabled"));
+  // console.log($smsCodeBtn.is(":disabled"));
+  if (checkMobilePhoneNumber(mpn) && $smsCodeBtn.is(":disabled")) {
+    $smsCodeBtn.prop("disabled", false);
+  } else if (!checkMobilePhoneNumber(mpn) && !$smsCodeBtn.is(":disabled")) {
+    $smsCodeBtn.prop("disabled", true);
+  }
+}
+
+function countdown() {
+  var $smsCodeBtn = $('.login-smscode-btn');
+
+  var time = 90;
+  $smsCodeBtn.html("已发送（" + time-- + "s）").prop("disabled", true);
+  var countdownFlag = setInterval(function() {
+    $smsCodeBtn.html("已发送（" + time-- + "s）");
+  }, 1000);
+
+  setTimeout(function() {
+    $smsCodeBtn.prop("disabled", false).html("重新获取");
+    clearInterval(countdownFlag);
+  }, (time + 1) * 1000);
+}
+
+$("input[name='mobilePhoneNumber'").on("input", function() {
+  checkSmsCodeBtnStatus(this.value);
+});
+
+$(".login-smscode-btn").on('click', function() {
+  if ($(this).is(":disabled")) {
     return false;
   }
-  var telephone = $('#tel_num').val();
-  var phoneNumReg = /^1\d{10}$/;
-  if (telephone && telephone.length == 11 && phoneNumReg.test(telephone)) {
-    console.log(ctx);
+
+  var mobilePhoneNumber = $("input[name='mobilePhoneNumber'").val();
+
+  if (checkMobilePhoneNumber(mobilePhoneNumber)) {
     $.post(ctx + "/login/sendSmsCode", {
-      "mobilePhoneNumber" : telephone
+      "mobilePhoneNumber" : mobilePhoneNumber
     }, function(data) {
       if (data.status != "0") {
-        alert(data.message);
+        toastr.error(data.message);
       } else {
-        time_inter(); // 按钮倒计时
+        countdown();
       }
     }, "json");
   } else {
-    alert('请输入正确手机号码');
+    toastr.error("请输入正确的手机号码");
   }
-})
+});
 
-$(".login-button").click(function() {
-  var telephone = $('#tel_num').val();
-  var checkCode = $("#code_num").val();
-  var phoneNumReg = /^1[3|4|5|7|8]\d{9}$/;
-  if (!telephone && telephone.length != 11 && !phoneNumReg.test(telephone)) {
-    alert('请输入正确手机号码');
-  } else if (checkCode == "") {
-    alert("请输入验证码");
+$(".login-submit-btn").click(function() {
+  var mobilePhoneNumber = $("input[name='mobilePhoneNumber']").val();
+  var smsCode = $("input[name='smsCode']").val();
+
+  if (!checkMobilePhoneNumber(mobilePhoneNumber)) {
+    toastr.error('请输入正确的手机号码');
+    return false;
+  } else if (!smsCode || smsCode.length == 0) {
+    toastr.error("请输入验证码");
+    return false;
+  } else if (!checkSmsCode(smsCode)) {
+    toastr.error("验证码错误，请确认")
+    return false;
   } else {
-    $("#loginForm").submit();
+    $(".login-form").submit();
     /*
-     * $.post(ctx + "/login/sms",{ "mobilePhoneNumber":telephone, "smsCode":checkCode },function(data){
+     * $.post(ctx + "/login",{ "mobilePhoneNumber":telephone, "smsCode":checkCode },function(data){
      * if(data.status=="0"){ //window.location.href="address"; }else{ alert(data.info); } },"json");
      */
   }
-})
+});
 
-var code_time = 90;
+$(function() {
+  if ($("input[name='mobilePhoneNumber']") && $("input[name='mobilePhoneNumber']").val().length > 0) {
+    checkSmsCodeBtnStatus($("input[name='mobilePhoneNumber']").val());
+  }
 
-function time_inter() {
-  $('.code-btn').addClass('code-btn-gray');
-  var timeflag = setInterval(function() {
-    $('.code-btn-gray').html("" + code_time + "s后获取").css({
-      "cursor" : "no-",
-      "color" : "#999"
-    });
-    code_time--;
-    if (code_time == 0) {
-      clearInterval(timeflag);
-      $('.code-btn-gray').html("获取验证码").css({
-        "cursor" : "pointer",
-        "color" : "#a07941"
-      });
-      $('.code-btn').removeClass('code-btn-gray');
-    }
-  }, 1000)
-}
+  if (errorMsg && errorMsg.length > 0) {
+    toastr.error(errorMsg);
+  }
+});

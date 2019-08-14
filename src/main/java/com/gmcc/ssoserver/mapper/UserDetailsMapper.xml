@@ -8,13 +8,12 @@
         <result column="user_name" property="userName" />
         <result column="check_code" property="checkCode" />
         <result column="authority" property="authority" />
-        <result column="last_sms_code_time" property="lastSmsCodeTime" />
         <result column="login_time" property="loginTime" />
     </resultMap>
 
     <!-- 通用查询结果列 -->
     <sql id="Base_Column_List">
-        phone, user_name, check_code, authority, last_sms_code_time, login_time
+        phone, user_name, check_code, authority, login_time
     </sql>
 
 </mapper>

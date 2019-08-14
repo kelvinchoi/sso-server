@@ -1,11 +1,11 @@
 package com.gmcc.ssoserver.entity;
 
-import com.gmcc.ssoserver.entity.BaseEntity;
-import com.baomidou.mybatisplus.annotation.TableName;
-import com.baomidou.mybatisplus.annotation.IdType;
-import com.baomidou.mybatisplus.annotation.TableId;
 import java.time.LocalDateTime;
+
+import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableField;
+import com.baomidou.mybatisplus.annotation.TableId;
+import com.baomidou.mybatisplus.annotation.TableName;
 
 /**
  * <p>
@@ -31,9 +31,6 @@ public class UserDetailsEntity extends BaseEntity {
 
     @TableField("authority")
     private String authority;
-
-    @TableField("last_sms_code_time")
-    private LocalDateTime lastSmsCodeTime;
 
     @TableField("login_time")
     private LocalDateTime loginTime;
@@ -71,14 +68,6 @@ public class UserDetailsEntity extends BaseEntity {
         this.authority = authority;
     }
 
-    public LocalDateTime getLastSmsCodeTime() {
-        return lastSmsCodeTime;
-    }
-
-    public void setLastSmsCodeTime(LocalDateTime lastSmsCodeTime) {
-        this.lastSmsCodeTime = lastSmsCodeTime;
-    }
-
     public LocalDateTime getLoginTime() {
         return loginTime;
     }
@@ -95,8 +84,6 @@ public class UserDetailsEntity extends BaseEntity {
 
     public static final String AUTHORITY = "authority";
 
-    public static final String LAST_SMS_CODE_TIME = "last_sms_code_time";
-
     public static final String LOGIN_TIME = "login_time";
 
     @Override
@@ -106,7 +93,6 @@ public class UserDetailsEntity extends BaseEntity {
         ", userName=" + userName +
         ", checkCode=" + checkCode +
         ", authority=" + authority +
-        ", lastSmsCodeTime=" + lastSmsCodeTime +
         ", loginTime=" + loginTime +
         "}";
     }

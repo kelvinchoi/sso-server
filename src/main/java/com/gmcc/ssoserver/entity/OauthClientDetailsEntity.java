@@ -12,7 +12,7 @@ import com.baomidou.mybatisplus.annotation.TableField;
  * </p>
  *
  * @author Kelvin@Inspur
- * @since 2019-07-24
+ * @since 2019-08-07
  */
 @TableName("oauth_client_details")
 public class OauthClientDetailsEntity extends BaseEntity {
@@ -21,6 +21,9 @@ public class OauthClientDetailsEntity extends BaseEntity {
 
     @TableId(value = "client_id", type = IdType.INPUT)
     private String clientId;
+
+    @TableField("service_name")
+    private String serviceName;
 
     @TableField("resource_ids")
     private String resourceIds;
@@ -52,6 +55,9 @@ public class OauthClientDetailsEntity extends BaseEntity {
     @TableField("autoapprove")
     private String autoapprove;
 
+    @TableField("status")
+    private Boolean status;
+
 
     public String getClientId() {
         return clientId;
@@ -59,6 +65,14 @@ public class OauthClientDetailsEntity extends BaseEntity {
 
     public void setClientId(String clientId) {
         this.clientId = clientId;
+    }
+
+    public String getServiceName() {
+        return serviceName;
+    }
+
+    public void setServiceName(String serviceName) {
+        this.serviceName = serviceName;
     }
 
     public String getResourceIds() {
@@ -141,7 +155,17 @@ public class OauthClientDetailsEntity extends BaseEntity {
         this.autoapprove = autoapprove;
     }
 
+    public Boolean getStatus() {
+        return status;
+    }
+
+    public void setStatus(Boolean status) {
+        this.status = status;
+    }
+
     public static final String CLIENT_ID = "client_id";
+
+    public static final String SERVICE_NAME = "service_name";
 
     public static final String RESOURCE_IDS = "resource_ids";
 
@@ -163,10 +187,13 @@ public class OauthClientDetailsEntity extends BaseEntity {
 
     public static final String AUTOAPPROVE = "autoapprove";
 
+    public static final String STATUS = "status";
+
     @Override
     public String toString() {
         return "OauthClientDetailsEntity{" +
         "clientId=" + clientId +
+        ", serviceName=" + serviceName +
         ", resourceIds=" + resourceIds +
         ", clientSecret=" + clientSecret +
         ", scope=" + scope +
@@ -177,6 +204,7 @@ public class OauthClientDetailsEntity extends BaseEntity {
         ", refreshTokenValidity=" + refreshTokenValidity +
         ", additionalInformation=" + additionalInformation +
         ", autoapprove=" + autoapprove +
+        ", status=" + status +
         "}";
     }
 }

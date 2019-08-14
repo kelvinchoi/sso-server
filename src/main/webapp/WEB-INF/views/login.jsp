@@ -5,39 +5,34 @@
 <head>
 <meta charset="UTF-8">
 <title>${title}</title>
+<%@include file="/WEB-INF/views/common.jsp" %>
 <link rel="stylesheet" href="${contextPath}/css/login.css">
 </head>
 <body>
-  <div class="login-bg">
-    <div class="content">
-      <div class="title">
-        <h2>${title}</h2>
+  <div class="login-container">
+    <div class="login-panel">
+      <div class="login-title-container">
+        <img alt="" src="${contextPath}/images/login_tilte_logo.jpg">
       </div>
-      <div class="form-box">
-        <form id="loginForm" action="${contextPath}/login/sms" method="post">
-          <div class="login-center">
-            <span class="t-name">手机号：</span><input type="text" name="mobilePhoneNumber" id="tel_num" class="inp phone-inp" value="" placeholder="请输入您的手机号">
+      <div class="login-form-container">
+        <form class="login-form" action="${contextPath}/login" method="post">
+          <div class="login-input-container">
+            <input type="text" name="mobilePhoneNumber" value="${mobilePhoneNumber}" placeholder="手机号" maxlength="11" autofocus="autofocus" autocomplete="mobile" />
+            <button type="button" class="login-smscode-btn" disabled="disabled">获取验证码</button>
           </div>
-          <div class="login-center">
-            <span class="t-name">验证码：</span><input type="text" name="smsCode" id="code_num" class="inp code-inp" value="" placeholder="请输入您的验证码">
-            <div class="get-code">
-              <span class="code-btn">获取验证码</span>
-            </div>
+          <div class="login-input-container">
+            <input type="text" name="smsCode" placeholder="验证码" maxlength="6" autocomplete="off">
           </div>
-          <div class="error-message">
-            <c:if test="${not empty errorMessage}">
-            ${errorMessage}
-            </c:if>
+          <div>
+            <button type="button" class="login-submit-btn">登录</button>
           </div>
-          <div class="login-button">登录</div>
         </form>
       </div>
     </div>
   </div>
   <script type="text/javascript">
-	var ctx = "${contextPath}";
+    var errorMsg = "${errorMsg}";
   </script>
-  <script type="text/javascript" src="${contextPath}/plugins/jquery/jquery-3.4.1.min.js"></script>
   <script type="text/javascript" src="${contextPath}/js/login.js"></script>
 </body>
 </html>

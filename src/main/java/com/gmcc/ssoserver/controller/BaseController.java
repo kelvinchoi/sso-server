@@ -22,6 +22,9 @@ public class BaseController {
 	@Autowired
 	protected HttpSession session;
 
+	protected static final String REDIRECT_PREFIX = "redirect:";
+	protected static final String FORWARD_PREFIX = "forward:";
+
 	@ModelAttribute
 	public void handle(Model model) {
 //  	String basePath = request.getScheme() + "://" + request.getServerName() + ":" + request.getServerPort() + path + "/";

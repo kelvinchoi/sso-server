@@ -26,17 +26,6 @@
   <beans:bean id="passwordEncoder" class="org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder" />
 
   <!-- ClientDetailsService configuration -->
-  <!-- In memory client details service -->
-  <oauth2:client-details-service id="inMemoryClientDetailsService">
-    <!-- Decrypted secret: secret -->
-    <oauth2:client client-id="client1"
-      secret="$2a$10$NG71NYxTNObfXlPShFaJR.FYPZI4ozaOs8ERROsINmUIDiUm2kOZS" authorized-grant-types="authorization_code"
-      scope="read" autoapprove="true" redirect-uri="http://localhost:8082/login" />
-    <oauth2:client client-id="client2"
-      secret="$2a$10$NG71NYxTNObfXlPShFaJR.FYPZI4ozaOs8ERROsINmUIDiUm2kOZS" authorized-grant-types="authorization_code"
-      scope="read" autoapprove="true" redirect-uri="http://localhost:8083/login" />
-  </oauth2:client-details-service>
-
   <!-- JDBC client details service, refer to the table oauth_client_details -->
   <beans:bean id="jdbcClientDetailsService"
     class="org.springframework.security.oauth2.provider.client.JdbcClientDetailsService">
@@ -45,9 +34,6 @@
 
   <beans:bean id="clientDetailsUserDetailsService"
     class="org.springframework.security.oauth2.provider.client.ClientDetailsUserDetailsService">
-    <!--
-      <beans:constructor-arg ref="inMemoryClientDetailsService" />
-    -->
     <beans:constructor-arg ref="jdbcClientDetailsService" />
   </beans:bean>
 
@@ -80,13 +66,15 @@
   </http>
 
   <!-- Token services configuration -->
-  <!-- In memory token store -->
-  <beans:bean id="inMemoryTokenStore"
-    class="org.springframework.security.oauth2.provider.token.store.InMemoryTokenStore" />
+  <!-- JDBC token store, refer to the table oauth_access_token -->
+  <beans:bean id="jdbcTokenStore"
+    class="org.springframework.security.oauth2.provider.token.store.JdbcTokenStore">
+    <beans:constructor-arg ref="dataSource" />
+  </beans:bean>
 
   <beans:bean id="tokenServices"
     class="org.springframework.security.oauth2.provider.token.DefaultTokenServices">
-    <beans:property name="tokenStore" ref="inMemoryTokenStore" />
+    <beans:property name="tokenStore" ref="jdbcTokenStore" />
     <beans:property name="clientDetailsService" ref="jdbcClientDetailsService" />
     <beans:property name="supportRefreshToken" value="true" />
   </beans:bean>
@@ -100,24 +88,30 @@
   <beans:bean id="oauth2UserApprovalHandler"
     class="org.springframework.security.oauth2.provider.approval.DefaultUserApprovalHandler" />
 
-  <beans:bean id="tokenApprovalStore"
-    class="org.springframework.security.oauth2.provider.approval.TokenApprovalStore" />
+  <!-- JDBC approval store, refer to the table oauth_approvals -->
+  <beans:bean id="jdbcApprovalStore"
+    class="org.springframework.security.oauth2.provider.approval.JdbcApprovalStore">
+    <beans:constructor-arg ref="dataSource" />
+  </beans:bean>
   <beans:bean id="oauth2ApprovalStoreUserApprovalHandler"
     class="org.springframework.security.oauth2.provider.approval.ApprovalStoreUserApprovalHandler">
-    <beans:property name="approvalStore" ref="tokenApprovalStore" />
+    <beans:property name="approvalStore" ref="jdbcApprovalStore" />
     <beans:property name="requestFactory" ref="oAuth2RequestFactory" />
     <beans:property name="clientDetailsService" ref="jdbcClientDetailsService" />
   </beans:bean>
 
-  <beans:bean id="inMemoryAuthorizationCodeServices"
-    class="org.springframework.security.oauth2.provider.code.InMemoryAuthorizationCodeServices" />
+  <!-- JDBC authorization code services, refer to the table oauth_code -->
+  <beans:bean id="jdbcAuthorizationCodeServices"
+    class="org.springframework.security.oauth2.provider.code.JdbcAuthorizationCodeServices">
+    <beans:constructor-arg ref="dataSource" />
+  </beans:bean>
 
   <!-- Authorization server configuration -->
   <oauth2:authorization-server client-details-service-ref="jdbcClientDetailsService"
     token-services-ref="tokenServices" user-approval-handler-ref="oauth2ApprovalStoreUserApprovalHandler"
     error-page="/login/error?code=403" check-token-enabled="true">
     <oauth2:authorization-code
-      authorization-code-services-ref="inMemoryAuthorizationCodeServices" />
+      authorization-code-services-ref="jdbcAuthorizationCodeServices" />
     <oauth2:implicit />
     <oauth2:refresh-token />
     <oauth2:client-credentials />

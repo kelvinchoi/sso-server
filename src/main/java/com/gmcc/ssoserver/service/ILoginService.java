@@ -1,9 +1,13 @@
 package com.gmcc.ssoserver.service;
 
+import org.springframework.ui.Model;
+
+import com.gmcc.ssoserver.security.sms.SmsCodeEntity;
+
 public interface ILoginService {
 	boolean validate(String mobilePhoneNumber);
 
-	boolean sendSmsCode(String mobilePhoneNumber);
+	SmsCodeEntity sendSmsCode(String mobilePhoneNumber);
 
-	boolean updateSmsCode(String mobilePhoneNumber, Integer smsCode);
+	void checkException(Model model);
 }
