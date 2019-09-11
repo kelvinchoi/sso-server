@@ -73,6 +73,11 @@ public class LoginController extends BaseController {
 		return ResponseEntity.ok(new BaseResponseEntity(status, message));
 	}
 
+	@GetMapping("error")
+	public String error() {
+		return "login_error";
+	}
+
 	@GetMapping("UserLoginManager/sendSms")
 	public ResponseEntity<Map<String, Object>> mockSendSms(@RequestParam String phoneNum, @RequestParam String idCode) {
 		Map<String, Object> resultMap = new HashMap<>();

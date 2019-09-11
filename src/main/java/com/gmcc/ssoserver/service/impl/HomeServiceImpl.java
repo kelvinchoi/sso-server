@@ -36,8 +36,6 @@ public class HomeServiceImpl extends ServiceImpl<OauthAccessTokenDao, OauthAcces
 				.getOne(Wrappers.<UserDetailsEntity>lambdaQuery().eq(UserDetailsEntity::getPhone, mobilePhoneNumber));
 		if (userDetailsEntity != null && StringUtils.isNotBlank(userDetailsEntity.getAuthority())) {
 			List<String> systemServiceNameList = Arrays.asList(userDetailsEntity.getAuthority().split(",", -1));
-			systemServiceNameList = systemServiceNameList.stream()
-					.map(systemServiceName -> systemServiceName.replace("ROLE_", "")).collect(Collectors.toList());
 			List<OauthClientDetailsEntity> authorizedClientDetailsEntityList = oauthClientDetailsService
 					.list(Wrappers.<OauthClientDetailsEntity>lambdaQuery().in(OauthClientDetailsEntity::getServiceName,
 							systemServiceNameList));

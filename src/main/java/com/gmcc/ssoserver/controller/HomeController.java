@@ -43,7 +43,6 @@ public class HomeController extends BaseController {
 					systemServiceEntityList.size());
 		}
 
-		model.addAttribute("message", "登录成功");
 		model.addAttribute("systemServiceEntityList", systemServiceEntityList);
 
 		return "index";

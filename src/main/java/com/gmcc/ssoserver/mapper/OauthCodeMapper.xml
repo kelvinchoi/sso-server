@@ -5,7 +5,7 @@
     <!-- 通用查询映射结果 -->
     <resultMap id="BaseResultMap" type="com.gmcc.ssoserver.entity.OauthCodeEntity">
         <result column="code" property="code" />
-        <result column="authentication" property="authentication" />
+        <result column="authentication" property="authentication" jdbcType="BLOB" typeHandler="org.apache.ibatis.type.BlobTypeHandler" />
     </resultMap>
 
     <!-- 通用查询结果列 -->
