@@ -81,5 +81,12 @@
   </bean>
   <bean id="ehcacheCacheManager" class="org.springframework.cache.ehcache.EhCacheCacheManager">
     <property name="cacheManager" ref="cacheManagerFactory" />
-  </bean>  
+  </bean>
+  
+  <mvc:interceptors>
+    <mvc:interceptor>
+      <mvc:mapping path="/oauth/authorize" />
+      <bean class="com.gmcc.ssoserver.interceptor.AccessLogInterceptor" />
+    </mvc:interceptor>
+  </mvc:interceptors>
 </beans>

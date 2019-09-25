@@ -66,6 +66,17 @@
 
   <beans:bean id="oauth2AccessDeniedHandler"
     class="org.springframework.security.oauth2.provider.error.OAuth2AccessDeniedHandler" />
+    
+  <http pattern="/user/me" create-session="stateless" authentication-manager-ref="oauth2AuthenticationManager"
+    entry-point-ref="oauth2AuthenticationEntryPoint" use-expressions="false">
+    <intercept-url pattern="/user/me" access="IS_AUTHENTICATED_FULLY" />
+    <anonymous enabled="false" />
+    <http-basic entry-point-ref="oauth2AuthenticationEntryPoint" />
+    <custom-filter ref="oauth2ResourceServerFilter" before="PRE_AUTH_FILTER" />
+    <custom-filter ref="oauth2ClientCredentialsTokenEndpointFilter" before="BASIC_AUTH_FILTER" />
+    <access-denied-handler error-page="/login/error?code=403" />
+    <csrf disabled="true" />
+  </http>
 
   <!-- Endpoint /oauth/token configuration -->
   <http pattern="/oauth/token" create-session="stateless" authentication-manager-ref="oauth2AuthenticationManager"
