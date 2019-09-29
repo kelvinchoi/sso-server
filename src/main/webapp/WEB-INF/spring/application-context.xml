@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+  xmlns:context="http://www.springframework.org/schema/context" xmlns:mvc="http://www.springframework.org/schema/mvc"
+  xmlns:tx="http://www.springframework.org/schema/tx" xmlns:cache="http://www.springframework.org/schema/cache"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+      http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd
+      http://www.springframework.org/schema/mvc http://www.springframework.org/schema/mvc/spring-mvc.xsd
+      http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx.xsd
+      http://www.springframework.org/schema/cache http://www.springframework.org/schema/cache/spring-cache.xsd">
+
+  <!-- Application Context: defines shared resources visible to all other web components -->
+  <context:property-placeholder
+    location="classpath:jdbc.properties,classpath:param.properties" />
+
+  <!-- Component scanner, exclude controller -->
+  <context:component-scan base-package="com.gmcc.ssoserver">
+    <context:exclude-filter type="annotation"
+      expression="org.springframework.stereotype.Controller" />
+  </context:component-scan>
+
+  <!--
+    <bean id="log-filter" class="com.alibaba.druid.filter.logging.Slf4jLogFilter">
+    <property name="connectionLogEnabled" value="false" />
+    <property name="statementLogEnabled" value="false" />
+    <property name="resultSetLogEnabled" value="true" />
+    <property name="statementExecutableSqlLogEnable" value="true" />
+    </bean>
+  -->
+
+  <bean id="dataSource" class="com.alibaba.druid.pool.DruidDataSource" init-method="init" destroy-method="close">
+    <property name="name" value="${jdbc.ssoserver.name"></property>
+    <property name="driverClassName" value="${jdbc.ssoserver.driverName}" />
+    <property name="url" value="${jdbc.ssoserver.url}" />
+    <property name="username" value="${jdbc.ssoserver.username}" />
+    <property name="password" value="${jdbc.ssoserver.password}" />
+
+    <!-- Initialization -->
+    <property name="initialSize" value="${jdbc.pool.initialSize}" />
+    <property name="maxActive" value="${jdbc.pool.maxActive}" />
+    <property name="minIdle" value="${jdbc.pool.minIdle}" />
+    <property name="maxWait" value="${jdbc.pool.maxWait}" />
+    <property name="filters" value="stat,slf4j" />
+
+    <!--
+      <property name="proxyFilters">
+      <list>
+      <ref bean="log-filter"/>
+      </list>
+      </property>
+    -->
+
+    <property name="validationQuery" value="SELECT 1" />
+    <property name="testOnBorrow" value="false" />
+    <property name="testOnReturn" value="false" />
+    <property name="testWhileIdle" value="true" />
+  </bean>
+
+  <bean id="sqlSessionFactory" class="com.baomidou.mybatisplus.extension.spring.MybatisSqlSessionFactoryBean">
+    <property name="dataSource" ref="dataSource" />
+    <property name="mapperLocations" value="classpath:com/gmcc/ssoserver/mapper/*.xml" />
+  </bean>
+
+  <!-- MyBatis Mapper Scan Config -->
+  <bean class="org.mybatis.spring.mapper.MapperScannerConfigurer">
+    <property name="basePackage" value="com.gmcc.ssoserver.dao" />
+    <!-- Known problem, do not change the key value to ref -->
+    <property name="sqlSessionFactoryBeanName" value="sqlSessionFactory" />
+  </bean>
+
+  <!-- Transaction manager, use JtaTransactionManager for global tx -->
+  <bean id="transactionManager" class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
+    <property name="dataSource" ref="dataSource" />
+  </bean>
+  <tx:annotation-driven proxy-target-class="false" transaction-manager="transactionManager" />
+  
+  <!-- Spring cache + Ehcache -->
+  <cache:annotation-driven cache-manager="ehcacheCacheManager" />
+  <bean id="cacheManagerFactory" class="org.springframework.cache.ehcache.EhCacheManagerFactoryBean">
+    <property name="configLocation" value="classpath:ehcache.xml" />
+  </bean>
+  <bean id="ehcacheCacheManager" class="org.springframework.cache.ehcache.EhCacheCacheManager">
+    <property name="cacheManager" ref="cacheManagerFactory" />
+  </bean>
+  
+  <mvc:interceptors>
+    <mvc:interceptor>
+      <mvc:mapping path="/oauth/authorize" />
+      <bean class="com.gmcc.ssoserver.interceptor.AccessLogInterceptor" />
+    </mvc:interceptor>
+  </mvc:interceptors>
+</beans>

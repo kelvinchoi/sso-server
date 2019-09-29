@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+  xmlns:context="http://www.springframework.org/schema/context" xmlns:mvc="http://www.springframework.org/schema/mvc"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+      http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd
+      http://www.springframework.org/schema/mvc http://www.springframework.org/schema/mvc/spring-mvc.xsd">
+
+  <!-- DispatcherServlet Context: defines this servlet's request-processing
+    infrastructure -->
+
+  <!-- Enables the Spring MVC @Controller programming model -->
+  <mvc:annotation-driven />
+
+  <!-- Handles HTTP GET requests for /resources/** by efficiently serving
+    up static resources in the ${webappRoot}/resources directory -->
+  <mvc:resources mapping="/resources/**" location="/resources/" />
+  <mvc:resources mapping="/plugins/**" location="/plugins/" />
+  <mvc:resources mapping="/js/**" location="/js/" />
+  <mvc:resources mapping="/css/**" location="/css/" />
+  <mvc:resources mapping="/images/**" location="/images/" />
+  <mvc:resources location="/favicon.ico" mapping="/favicon.ico" />
+  <!-- 
+  <mvc:default-servlet-handler/>
+  <mvc:resources mapping="/themes/**" location="/themes/" />
+  <mvc:resources mapping="/file/**" location="/file/" />
+  <mvc:resources mapping="/documents/**" location="/documents/" />
+   -->
+
+  <!-- Resolves views selected for rendering by @Controllers to .jsp resources
+    in the /WEB-INF/views directory -->
+  <bean class="org.springframework.web.servlet.view.InternalResourceViewResolver">
+    <property name="prefix" value="/WEB-INF/views/" />
+    <property name="suffix" value=".jsp" />
+  </bean>
+
+  <!-- 自动扫描java控制类，扫描到带有@Controller则注册为bean -->
+  <context:component-scan base-package="com.gmcc.ssoserver" use-default-filters="false">
+    <context:include-filter type="annotation"
+      expression="org.springframework.stereotype.Controller" />
+  </context:component-scan>
+
+  <bean id="multipartResolver" class="org.springframework.web.multipart.commons.CommonsMultipartResolver">
+    <property name="defaultEncoding" value="utf-8"></property>
+    <!-- 1000mb上传文件大小限制 -->
+    <property name="maxUploadSize" value="1048576000"></property>
+    <!-- 超过4kb的上传文件将写入磁盘 -->
+    <property name="maxInMemorySize" value="40960"></property>
+  </bean>
+
+  <!-- 使用FastJson替代Jackson -->
+  <!-- 
+  <mvc:annotation-driven>
+    <mvc:message-converters>
+      <bean id="fastJsonHttpMessageConverter"
+        class="com.alibaba.fastjson.support.spring.FastJsonHttpMessageConverter">
+        <property name="supportedMediaTypes">
+          <list>
+            <value>application/json;charset=UTF-8</value>
+          </list>
+        </property>
+      </bean>
+    </mvc:message-converters>
+  </mvc:annotation-driven>
+   -->
+</beans>
