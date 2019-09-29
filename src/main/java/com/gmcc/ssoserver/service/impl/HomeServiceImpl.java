@@ -1,8 +1,10 @@
 package com.gmcc.ssoserver.service.impl;
 
+import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.StringUtils;
@@ -11,6 +13,7 @@ import org.springframework.stereotype.Service;
 
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.gmcc.ssoserver.dao.OauthAccessTokenDao;
 import com.gmcc.ssoserver.entity.OauthAccessTokenEntity;
 import com.gmcc.ssoserver.entity.OauthClientDetailsEntity;
@@ -37,15 +40,25 @@ public class HomeServiceImpl extends ServiceImpl<OauthAccessTokenDao, OauthAcces
 		if (userDetailsEntity != null && StringUtils.isNotBlank(userDetailsEntity.getAuthority())) {
 			List<String> systemServiceNameList = Arrays.asList(userDetailsEntity.getAuthority().split(",", -1));
 			List<OauthClientDetailsEntity> authorizedClientDetailsEntityList = oauthClientDetailsService
-					.list(Wrappers.<OauthClientDetailsEntity>lambdaQuery().in(OauthClientDetailsEntity::getServiceName,
+					.list(Wrappers.<OauthClientDetailsEntity>lambdaQuery().in(OauthClientDetailsEntity::getClientId,
 							systemServiceNameList));
 
-			systemServiceEntityList = authorizedClientDetailsEntityList.stream()
-					.map(authorizedClientDetailsEntity -> new SystemServiceEntity(
-							authorizedClientDetailsEntity.getServiceName(),
-							authorizedClientDetailsEntity.getWebServerRedirectUri(),
-							authorizedClientDetailsEntity.getAdditionalInformation()))
-					.collect(Collectors.toList());
+			systemServiceEntityList = authorizedClientDetailsEntityList.stream().map(authorizedClientDetailsEntity -> {
+				SystemServiceEntity systemServiceEntity = new SystemServiceEntity(
+						authorizedClientDetailsEntity.getServiceName(),
+						authorizedClientDetailsEntity.getWebServerRedirectUri());
+				if (StringUtils.isNotBlank(authorizedClientDetailsEntity.getAdditionalInformation())) {
+					ObjectMapper objectMapper = new ObjectMapper();
+					try {
+						String description = (String) objectMapper
+								.readValue(authorizedClientDetailsEntity.getAdditionalInformation(), Map.class)
+								.get("description");
+						systemServiceEntity.setDescription(description);
+					} catch (IOException e) {
+					}
+				}
+				return systemServiceEntity;
+			}).collect(Collectors.toList());
 		}
 
 		return systemServiceEntityList;
