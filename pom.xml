@@ -14,7 +14,7 @@
     <org.aspectj-version>1.9.4</org.aspectj-version>
     <org.slf4j-version>1.7.25</org.slf4j-version>
     <mybatis.plus.version>3.0.7.1</mybatis.plus.version>
-    <jackson.version>2.9.7</jackson.version>
+    <jackson.version>2.12.6.1</jackson.version>
   </properties>
   <dependencies>
     <!-- Spring -->
